@@ -56,6 +56,12 @@ before giving up completely.
 import os.path
 import sys
 
+import platform
+import os
+if platform.system() == 'Windows':
+  dllpath = os.path.dirname(os.path.abspath(__file__))
+  os.environ['PATH'] += ";" + dllpath
+
 import warnings
 warnings.simplefilter('always', DeprecationWarning) # see #1437
 
