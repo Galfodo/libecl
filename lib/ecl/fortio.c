@@ -473,7 +473,7 @@ bool fortio_data_fskip(fortio_type* fortio, const int element_size, const int el
   offset_type current_offset = fortio_ftell(fortio);
 
   /* Try reading the size of the first record and assume that it is followed by 
-     a number of equal size records + zero or one smaller records */
+     a number of equal sized records + zero or one smaller records */
   record_size = fortio_init_read(fortio);
   records_to_skip = total_byte_count / record_size;
   if (fortio_fseek(fortio, record_size * records_to_skip + (records_to_skip - 1) * 8, SEEK_CUR) && fortio_complete_read(fortio, record_size)) {
