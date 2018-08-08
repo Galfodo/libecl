@@ -465,12 +465,35 @@ int fortio_init_read(fortio_type *fortio) {
 }
 
 
-bool fortio_data_fskip(fortio_type* fortio, const int element_size, const int element_count, const int block_count) {
-  int headers = block_count * 4;
-  int trailers = block_count * 4;
-  int bytes_to_skip = headers + trailers + (element_size * element_count);
+bool fortio_data_fskip(fortio_type* fortio, const int element_size, const int element_count) {
+  size_t total_byte_count = element_size * element_count;
+  size_t remaining_byte_count = total_byte_count;
+  size_t records_to_skip;
+  int record_size;
+  offset_type current_offset = fortio_ftell(fortio);
 
-  return fortio_fseek(fortio, bytes_to_skip, SEEK_CUR);
+  /* Try reading the size of the first record and assume that it is followed by 
+     a number of equal size records + zero or one smaller records */
+  record_size = fortio_init_read(fortio);
+  records_to_skip = total_byte_count / record_size;
+  if (fortio_fseek(fortio, record_size * records_to_skip + (records_to_skip - 1) * 8, SEEK_CUR) && fortio_complete_read(fortio, record_size)) {
+    remaining_byte_count -= record_size * records_to_skip;
+  } else {
+    /* Fall back to skipping individual records */
+    if (!fortio_fseek(fortio, current_offset, SEEK_SET))
+      return false;
+  }
+  while (remaining_byte_count > 0 && remaining_byte_count <= total_byte_count) {
+    record_size = fortio_init_read(fortio);
+    if (record_size < 0)
+      return false;
+    if (!fortio_fseek(fortio, record_size, SEEK_CUR))
+      return false;
+    if (!fortio_complete_read(fortio, record_size))
+      return false;
+    remaining_byte_count -= record_size;
+  }
+  return remaining_byte_count == 0;
 }
 
 

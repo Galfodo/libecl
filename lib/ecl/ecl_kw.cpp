@@ -1302,11 +1302,8 @@ bool ecl_kw_fskip_data__( ecl_data_type data_type , const int element_count , fo
     ecl_kw_fread_data(tmp_kw , fortio);
     ecl_kw_free( tmp_kw );
   } else {
-    const int blocksize = get_blocksize( data_type );
-    const int block_count = element_count / blocksize + (element_count % blocksize != 0);
     int element_size = ecl_type_get_sizeof_iotype(data_type);
-
-    if(!fortio_data_fskip(fortio, element_size, element_count, block_count))
+    if(!fortio_data_fskip(fortio, element_size, element_count))
       return false;
   }
 
